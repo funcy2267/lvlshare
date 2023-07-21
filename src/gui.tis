@@ -1,8 +1,15 @@
-for (var name in view.get_level_names()) {
+var custom_gd_data = view.msgbox(#question, "Use custom Geometry Dash data folder?","GD data location",[ {id:#yes, text:"Select"}, {id:#no, text:"Use default"} ]);
+
+var gd_data = view.get_default_gd_path();
+if (custom_gd_data == "yes") {
+    gd_data = view.format_selected_path(view.selectFolder());
+}
+
+for (var name in view.get_level_names(gd_data)) {
     $(#levellist).options.$append(<option>{name}</option>);
 }
 
-var stats = view.get_user_stats();
+var stats = view.get_user_stats(gd_data);
 
 
 
@@ -28,7 +35,7 @@ $(button#import).on("click", function() {
     var fn = view.selectFile(#open, "lvlshare level file | *.lvl" , "lvl" );
 
     if (fn) {
-        view.import_file(fn);
+        view.import_file(gd_data, fn);
     }
 });
 
@@ -43,7 +50,7 @@ $(button#export).on("click", function() {
     var fn = view.selectFile(#save, "lvlshare level file | *.lvl" , "lvl", name + ".lvl" );
 
     if (fn) {
-        view.export_level(name, fn);
+        view.export_level(gd_data, name, fn);
     }
 });
 
@@ -83,6 +90,7 @@ function openTab(name) {
 
 }
 
+/*
 $(button#addpartfile).on("click", function() {
 
     var leveldata = {
@@ -95,6 +103,7 @@ $(button#addpartfile).on("click", function() {
         <t class="creatorname"> by {leveldata.creator} </t>
     </div>);
 });
+*/
 
 
 self.select("#tab0button").on("click", function() {
@@ -103,6 +112,7 @@ self.select("#tab0button").on("click", function() {
 self.select("#tab1button").on("click", function() {
     openTab("tab1")
 });
+/*
 self.select("#tab2button").on("click", function() {
     openTab("tab2")
 });
@@ -112,5 +122,6 @@ self.select("#tab3button").on("click", function() {
 self.select("#tab4button").on("click", function() {
     openTab("tab4")
 });
+*/
 
 openTab("tab0");

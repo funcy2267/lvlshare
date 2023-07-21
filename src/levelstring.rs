@@ -15,19 +15,11 @@ use std::collections::HashMap;
 use std::io::BufReader;
 use std::io::Cursor;
 
-pub fn get_local_levels_path() -> Result<PathBuf, String> {
-    Ok(PathBuf::from(match std::env::var("localappdata") {
-        Ok(path) => path,
-        Err(e) => return Err(e.to_string()),
-    })
-    .join("GeometryDash/CCLocalLevels.dat"))
-}
+const GD_DATA_FILENAME: &str = "CCGameManager.dat";
+const GD_LEVELS_FILENAME: &str = "CCLocalLevels.dat";
 
-pub fn get_level_names() -> Result<Vec<String>, String> {
-    let gd_path = match get_local_levels_path() {
-        Ok(p) => p,
-        Err(e) => return Err(e),
-    };
+pub fn get_level_names(gd_data: String) -> Result<Vec<String>, String> {
+    let gd_path = PathBuf::from(gd_data+"/"+GD_LEVELS_FILENAME);
 
     let save_file = match fs::File::open(gd_path) {
         Ok(file) => file,
@@ -67,11 +59,8 @@ pub fn get_level_names() -> Result<Vec<String>, String> {
     Ok(names)
 }
 
-pub fn export_level(level_name: &str) -> Result<Vec<u8>, String> {
-    let gd_path = match get_local_levels_path() {
-        Ok(p) => p,
-        Err(e) => return Err(e),
-    };
+pub fn export_level(gd_data: String, level_name: &str) -> Result<Vec<u8>, String> {
+    let gd_path = PathBuf::from(gd_data+"/"+GD_LEVELS_FILENAME);
 
     let save_file = match fs::File::open(gd_path) {
         Ok(file) => file,
@@ -191,11 +180,8 @@ pub fn export_level(level_name: &str) -> Result<Vec<u8>, String> {
     }
 }
 
-pub fn import_level(level_file: PathBuf) -> Option<String> {
-    let gd_path = match get_local_levels_path() {
-        Ok(p) => p,
-        Err(e) => return Some(e),
-    };
+pub fn import_level(gd_data: String, level_file: PathBuf) -> Option<String> {
+    let gd_path = PathBuf::from(gd_data+"/"+GD_LEVELS_FILENAME);
 
     let save_file = match fs::File::open(gd_path.clone()) {
         Ok(file) => file,
@@ -325,12 +311,8 @@ pub fn import_level(level_file: PathBuf) -> Option<String> {
     None
 }
 
-pub fn get_user_stats() -> Result<HashMap<String, String>, String> {
-    let gd_path = PathBuf::from(match std::env::var("localappdata") {
-        Ok(path) => path,
-        Err(e) => return Err(e.to_string()),
-    })
-    .join("GeometryDash/CCGameManager.dat");
+pub fn get_user_stats(gd_data: String) -> Result<HashMap<String, String>, String> {
+    let gd_path = PathBuf::from(gd_data+"/"+GD_DATA_FILENAME);
 
     let save_file = match fs::File::open(gd_path) {
         Ok(file) => file,

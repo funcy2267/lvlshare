@@ -1,6 +1,6 @@
-//#![windows_subsystem = "windows"]
+#![windows_subsystem = "windows"]
 
-mod backups;
+//mod backups;
 mod levelstring;
 
 extern crate sciter;
@@ -19,7 +19,7 @@ struct Handler {
 const LOCAL_DATA_FOLDER_NAME: &str = "LVLShare";
 
 impl Handler {
-    fn export_level(&self, level_name: String, mut location: String) {
+    fn export_level(&self, gd_data: String, level_name: String, mut location: String) {
         use std::io::Write;
         location.replace_range(..7, "");
         location = location.replace("%20", " ");
@@ -27,7 +27,7 @@ impl Handler {
         let path = PathBuf::from(location);
 
         let mut file = File::create(path).expect("Error creating file.");
-        match levelstring::export_level(&level_name) {
+        match levelstring::export_level(gd_data, &level_name) {
             Ok(level) => {
                 file.write_all(&level).expect("Error writing to file.");
             }
@@ -35,13 +35,13 @@ impl Handler {
         };
     }
 
-    fn import_file(&self, mut level_file: String) {
+    fn import_file(&self, gd_data: String, mut level_file: String) {
         level_file.replace_range(..7, "");
         level_file = level_file.replace("%20", " ");
         println!("{}", level_file);
         let path = PathBuf::from(level_file);
         let root = &self.host;
-        match levelstring::import_level(path) {
+        match levelstring::import_level(gd_data, path) {
             Some(err) => message_box(format!("Error when importing level: {}", err), root),
             None => message_box("Level imported to Geometry Dash!".to_string(), root),
         };
@@ -58,8 +58,8 @@ impl Handler {
         gd_found
     }
 
-    fn get_level_names(&self) -> Value {
-        match levelstring::get_level_names() {
+    fn get_level_names(&self, gd_data: String) -> Value {
+        match levelstring::get_level_names(gd_data) {
             Ok(list) => {
                 let mut array = Value::array(0);
                 for name in list {
@@ -74,8 +74,8 @@ impl Handler {
         }
     }
 
-    fn get_user_stats(&self) -> Value {
-        match levelstring::get_user_stats() {
+    fn get_user_stats(&self, gd_data: String) -> Value {
+        match levelstring::get_user_stats(gd_data) {
             Ok(mut list) => {
                 let name = list.remove("name").unwrap();
                 let user_id = list.remove("user_id").unwrap();
@@ -100,16 +100,27 @@ impl Handler {
             }
         }
     }
+
+    fn get_default_gd_path(&self) -> Result<String, String> {
+        Ok(std::env::var("localappdata").unwrap()+"/GeometryDash")
+    }
+
+    fn format_selected_path(&self, mut path_str: String) -> Result<String, String> {
+        path_str.replace_range(..7, "");
+        let path_str = path_str.replace("%20", " ");
+        Ok(path_str)
+    }
 }
 
 impl sciter::EventHandler for Handler {
     dispatch_script_call! {
-      fn export_level(String, String);
-      fn import_file(String);
+      fn export_level(String, String, String);
+      fn import_file(String, String);
       fn gd_found();
-      fn get_level_names();
-      fn get_user_stats();
-
+      fn get_level_names(String);
+      fn get_user_stats(String);
+      fn get_default_gd_path();
+      fn format_selected_path(String);
     }
 }
 
